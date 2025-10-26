@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
 import fs from 'node:fs';
+// import path from 'node:path';
 import https from 'node:https';
 import {
   CERT_FILE,
@@ -50,13 +51,36 @@ app.use(
   }),
 );
 
-//MIDDLEWARE
-// app.use((err: Error, _: express.Request, res: express.Response) => {
-// console.error(err);
-// res.status(500).json({ error: 'Something went wrong!' });
-// });
+// // SERVE STATIC FILES -- possibility to enable in future
+// if (process.env.NODE_ENV === 'production') {
+//   const staticPath = path.join(__dirname, '../../');
 
-// app.use(errorHandler);
+//   console.log('[DEBUG] Static path:', staticPath);
+//   console.log('[DEBUG] Assets path:', path.join(staticPath, 'assets'));
+
+//   app.use(express.static(staticPath, {
+//     setHeaders: (res, filePath) => {
+//       if (filePath.endsWith('.html')) {
+//         res.setHeader('Cache-Control', 'no-store');
+//       } else {
+//         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+//       }
+//     },
+//   }));
+
+//   //index.html without cahce
+//   app.get('/', (req, res) => {
+//     res.set('Cache-Control', 'no-store');
+//     res.sendFile(path.join(staticPath, 'index.html'));
+//   });
+
+//   // Catch-all route to serve index.html for all paths other than API requests (used by SPA in web React app)
+//   app.get('/*splat', (req, res, next) => {
+//     if (req.path.startsWith('/api')) return next(); // let API requests pass through
+//     res.set('Cache-Control', 'no-store');
+//     res.sendFile(path.join(staticPath, 'index.html'));
+//   });
+// }
 
 async function startServer() {
   console.log(`[ENV] NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
@@ -96,8 +120,6 @@ async function startServer() {
 
   const shutdown = () => {
     console.log('Shutting down server...');
-    // mongoose.connection.close(false);
-    // console.log('ℹ️  MongoDB connection closed');
     server.close(() => {
       console.log('Server closed.');
       process.exit(0);
@@ -105,7 +127,6 @@ async function startServer() {
 
     // Force exit if server is not shut down within 5 seconds
     setTimeout(async () => {
-      //   await mongoose.connection.close(true);
       console.log('Forcefully shutting down the server.');
       process.exit(1);
     }, 5000);
