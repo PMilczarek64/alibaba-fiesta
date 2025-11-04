@@ -4,6 +4,7 @@
 .env
 api/ngnix/app_no_ssl.nginx
 api/ngnix/app.nginx
+api/server/storage/
 deploy.sh         
 
 

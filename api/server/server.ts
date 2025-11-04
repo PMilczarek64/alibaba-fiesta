@@ -12,11 +12,12 @@ import {
   KEY_FILE,
 } from '../certs/setupCerts.js';
 import uploadRoute from './routes/files/uploadRoute.js';
+import listRoute from './routes/files/listRoute.js';
+import deleteRoute from './routes/files/deleteRoute.js';
 
 dotenv.config();
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
+//TODO: delete metadata
 
 const app = express();
 const PORT = process.env.PORT || 8081;
@@ -38,7 +39,7 @@ app.use(
         callback(new Error('Not allowed by CORS'));
       }
     },
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
@@ -85,6 +86,8 @@ app.use(
 
 // ROUTES
 app.use('/files/upload', uploadRoute);
+app.use('/files/list', listRoute);
+app.use('/files/delete', deleteRoute);
 
 // 404 handler
 app.use((req, res) => {

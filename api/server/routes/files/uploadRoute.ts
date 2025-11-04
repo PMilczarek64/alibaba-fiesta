@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import fileStorage from '../../storage/createStorage.js';
+import fileStorage from '../../utils/createStorage.js';
 
 const uploadRoute = Router();
 
@@ -11,7 +11,9 @@ uploadRoute.post('/', fileStorage.single('file'), (req, res) => {
   res.json({
     success: true,
     message: 'File uploaded successfully',
-    fileUrl: `/uploads/${req.file.filename}`,
+    params: {
+      fileUrl: `/uploads/${req.file.filename}`,
+    },
   });
 });
 

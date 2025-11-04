@@ -1,36 +1,43 @@
-import { useState } from 'react';
 import { Uploader } from './components/Uploader';
-import { uploadFile } from '../api/clients/uploadFile';
+import { useUploadFile } from './hooks/useUploadFile';
+import { callServer } from '../api/clients/callServer';
+import { useEffect, useState } from 'react';
+import { useDeleteFile } from './hooks/useDeleteFile';
 
 export const App = () => {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
-
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const uploadedFile = event.target.files?.[0] || null;
-    if (!uploadedFile) return;
-
-    setFile(uploadedFile);
-    console.log('Selected file:', uploadedFile);
-
-    // file upload
-    const result = await uploadFile({
-      file: uploadedFile,
-      additionalData: { userId: 123 },
-    });
-
-    if (result.success) {
-      setUploadStatus(`✅ Uploaded: ${result.fileUrl || 'no URL returned'}`);
-    } else {
-      setUploadStatus(`❌ Error ${result.status}: ${result.message}`);
+  const [files, setFiles] = useState<string[]>([]);
+  const fetchFiles = async () => {
+    const response = await callServer({ mode: 'LIST_FILES', method: 'GET' });
+    if (response.success) {
+      setFiles(response.params.files);
     }
   };
 
+  const { handleDelete } = useDeleteFile(fetchFiles);
+  const { file, uploadStatus, isUploading, handleUpload } = useUploadFile(fetchFiles);
+
+  useEffect(() => {
+    fetchFiles();
+  }, []);
+
   return (
     <div style={{ padding: 20 }}>
-      <Uploader handleUpload={handleUpload} />
+      <Uploader handleUpload={handleUpload}/>
       {file && <p>Selected: {file.name}</p>}
+      {isUploading && <p>Uploading...</p>}
       {uploadStatus && <p>{uploadStatus}</p>}
+      {files && (<div>
+        <h1>File List</h1>
+        <ul>
+          {files.map((file) => (
+            <li key={file}>
+              {file}
+              <button onClick={(e) => handleDelete(e, file)}>Delete</button>
+            </li>
+          ))}
+        </ul>
+      </div>
+      )
+      }
     </div>
-  );
-};
+  );};
