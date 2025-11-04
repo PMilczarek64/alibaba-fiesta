@@ -11,6 +11,7 @@ import {
   checkForCerts,
   KEY_FILE,
 } from '../certs/setupCerts.js';
+import uploadRoute from './routes/files/uploadRoute.js';
 
 dotenv.config();
 
@@ -81,6 +82,14 @@ app.use(
 //     res.sendFile(path.join(staticPath, 'index.html'));
 //   });
 // }
+
+// ROUTES
+app.use('/files/upload', uploadRoute);
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: 'Not Found' });
+});
 
 async function startServer() {
   console.log(`[ENV] NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
