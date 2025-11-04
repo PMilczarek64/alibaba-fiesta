@@ -19,7 +19,7 @@ export async function uploadFile({
   file,
   additionalData = {},
 }: UploadParams): Promise<UploadResponse | UploadError> {
-  const expressServerUrl = import.meta.env.VITE_SERVER_URL;
+  const expressServerUrl = import.meta.env.VITE_SERVER_URL || 'https://localhost:8081';
   const url = new URL('/files/upload', expressServerUrl);
 
   const formData = new FormData();
