@@ -30,7 +30,7 @@ export const useUploadFile = (fetchFiles: () => Promise<void>): UseUploadFileRes
       });
 
       if (result.success) {
-        setUploadStatus(`✅ Uploaded: ${result.params.fileUrl || 'no URL returned'}`);
+        setUploadStatus(`✅ Uploaded: ${result.data.fileUrl || 'no URL returned'}`);
         fetchFiles();
       } else {
         setUploadStatus(`❌ Error ${result.status}: ${result.message}`);

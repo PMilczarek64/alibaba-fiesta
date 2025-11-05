@@ -6,17 +6,17 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const listRoute = Router();
+const listFiles = Router();
 
-listRoute.get('/', (req, res) => {
+listFiles.get('/', (req, res) => {
   const files = fs.readdirSync(__dirname + '/../../storage/files');
   res.json({
     success: true,
-    message: 'Files listed successfully',
+    message: '✅ Files listed successfully',
     params: {
       files,
     },
   });
 });
 
-export default listRoute;
+export default listFiles;

@@ -6,10 +6,10 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const deleteRoute = Router();
+const deleteFile = Router();
 
-deleteRoute.post('/', (req, res) => {
-  const { filename } = req.body; // ✅ read JSON body
+deleteFile.post('/', (req, res) => {
+  const { filename } = req.body;
   if (!filename || typeof filename !== 'string') {
     return res.status(400).json({ success: false, message: 'Filename is required in body' });
   }
@@ -21,11 +21,11 @@ deleteRoute.post('/', (req, res) => {
   const files = fs.rmSync(filePath, { force: true });
   res.json({
     success: true,
-    message: 'Files deleted successfully',
+    message: '✅ Files deleted successfully',
     params: {
       files,
     },
   });
 });
 
-export default deleteRoute;
+export default deleteFile;

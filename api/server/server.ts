@@ -11,10 +11,13 @@ import {
   checkForCerts,
   KEY_FILE,
 } from '../certs/setupCerts.js';
-import uploadRoute from './routes/files/uploadRoute.js';
-import listRoute from './routes/files/listRoute.js';
-import deleteRoute from './routes/files/deleteRoute.js';
 import { connectToDB } from '../db/connection.js';
+import uploadFile from './routes/files/uploadFile.js';
+import listFiles from './routes/files/listFiles.js';
+import deleteFile from './routes/files/deleteFile.js';
+import addUser from './routes/users/addUser.js';
+import getUser from './routes/users/getUser.js';
+import deleteUser from './routes/users/deleteUser.js';
 
 dotenv.config();
 
@@ -86,9 +89,12 @@ app.use(
 // }
 
 // ROUTES
-app.use('/files/upload', uploadRoute);
-app.use('/files/list', listRoute);
-app.use('/files/delete', deleteRoute);
+app.use('/files/upload', uploadFile);
+app.use('/files/list', listFiles);
+app.use('/files/delete', deleteFile);
+app.use('/users/add', addUser);
+app.use('/users/get', getUser);
+app.use('/users/delete', deleteUser);
 
 // 404 handler
 app.use((req, res) => {

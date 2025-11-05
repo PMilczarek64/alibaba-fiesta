@@ -9,7 +9,7 @@ export const App = () => {
   const fetchFiles = async () => {
     const response = await callServer({ mode: 'LIST_FILES', method: 'GET' });
     if (response.success) {
-      setFiles(response.params.files);
+      setFiles(response.data.files);
     }
   };
 
