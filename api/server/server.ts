@@ -14,6 +14,7 @@ import {
 import uploadRoute from './routes/files/uploadRoute.js';
 import listRoute from './routes/files/listRoute.js';
 import deleteRoute from './routes/files/deleteRoute.js';
+import { connectToDB } from '../db/connection.js';
 
 dotenv.config();
 
@@ -121,7 +122,7 @@ async function startServer() {
           app,
         )
         .listen(PORT, () => {
-          // connectDB();
+          connectToDB();
           console.log(`🔐 Dev server running at https://localhost:${PORT}`);
         });
 
