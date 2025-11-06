@@ -1,20 +1,22 @@
 import { Router } from 'express';
 import { connectToDB } from '../../../db/connection.js';
 import { OkPacketParams } from 'mysql2';
+import bcrypt from 'bcrypt';
 
 const addUser = Router();
 
 addUser.post('/', async (req, res) => {
-  const { username, passwordHash } = req.body;
-  if (!username || !passwordHash) {
-    return res.status(400).json({ success: false, message: 'Username and password are required' });
+  const { login, password } = req.body;
+  if (!login || !password) {
+    return res.status(400).json({ success: false, message: 'Login and password are required' });
   }
 
   let newUserId = null;
 
   try {
-    const db = await connectToDB();
-    const [result] = await db.execute('INSERT INTO users (username, password_hash) VALUES (?, ?)', [username, passwordHash]);
+    const passwordHash = await bcrypt.hash(password, 12);
+    const { db } = await connectToDB();
+    const [result] = await db.execute('INSERT INTO users (login, password_hash) VALUES (?, ?)', [login, passwordHash]);
     newUserId = result.constructor.name === 'OkPacket' ? (result as OkPacketParams)?.insertId : null;
   } catch (err: any) {
     console.error('❌ MySQL error during user insert:', err?.message);

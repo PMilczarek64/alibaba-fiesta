@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import fs from 'node:fs';
 // import path from 'node:path';
 import https from 'node:https';
+import cookieParser from 'cookie-parser';
 import {
   CERT_FILE,
   CERTS_DIR,
@@ -18,6 +19,8 @@ import deleteFile from './routes/files/deleteFile.js';
 import addUser from './routes/users/addUser.js';
 import getUser from './routes/users/getUser.js';
 import deleteUser from './routes/users/deleteUser.js';
+import session from 'express-session';
+import loginUser from './routes/users/loginUser.js';
 
 dotenv.config();
 
@@ -56,6 +59,7 @@ app.use(
     },
   }),
 );
+app.use(cookieParser());
 
 // // SERVE STATIC FILES -- possibility to enable in future
 // if (process.env.NODE_ENV === 'production') {
@@ -95,6 +99,11 @@ app.use('/files/delete', deleteFile);
 app.use('/users/add', addUser);
 app.use('/users/get', getUser);
 app.use('/users/delete', deleteUser);
+app.use('/users/login', loginUser);
+app.get('/test', (req, res) => {
+  (req.session as any).counter = ((req.session as any).counter || 0) + 1;
+  res.json({ visits: (req.session as any).counter });
+});
 
 // 404 handler
 app.use((req, res) => {
@@ -127,8 +136,24 @@ async function startServer() {
           },
           app,
         )
-        .listen(PORT, () => {
-          connectToDB();
+        .listen(PORT, async () => {
+          // setup sessios
+          const { sessionStore } = await connectToDB();
+          app.use(
+            session({
+              name: 'sessionId',
+              secret: process.env.SESSION_SECRET!,
+              store: sessionStore ?? undefined,
+              resave: false,
+              saveUninitialized: false,
+              cookie: {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'lax',
+                maxAge: 24 * 60 * 60 * 1000,
+              },
+            }),
+          );
           console.log(`🔐 Dev server running at https://localhost:${PORT}`);
         });
 

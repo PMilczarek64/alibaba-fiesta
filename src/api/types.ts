@@ -39,13 +39,13 @@ export type CallServerParamsUserAdd = {
   mode: 'ADD_USER';
   method: 'POST';
   login: string;
-  passwordHash: string;
+  password: string;
 }
 
 export type CallServerParamsUserGet = {
   mode: 'GET_USER';
-  method: 'GET';
-  userId: number;
+  method: 'POST';
+  login: string;
 }
 
 export type CallServerParamsUserDelete = {
@@ -54,5 +54,12 @@ export type CallServerParamsUserDelete = {
   userId: number;
 }
 
+export type CallServerParamsUserLogin = {
+  mode: 'LOGIN_USER';
+  method: 'POST';
+  login: string;
+  password: string;
+}
+
 // Union type for all possible parameter types
-export type CallServerParams = CallServerParamsUpload | CallServerParamsList | CallServerParamsDelete | CallServerParamsUserAdd | CallServerParamsUserGet | CallServerParamsUserDelete;
+export type CallServerParams = CallServerParamsUpload | CallServerParamsList | CallServerParamsDelete | CallServerParamsUserAdd | CallServerParamsUserGet | CallServerParamsUserDelete | CallServerParamsUserLogin;

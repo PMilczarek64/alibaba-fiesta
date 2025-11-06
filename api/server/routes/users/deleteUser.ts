@@ -11,7 +11,7 @@ deleteUser.post('/', async (req, res) => {
   }
 
   try {
-    const db = await connectToDB();
+    const { db } = await connectToDB();
     const [result] = await db.execute(
       'DELETE FROM users WHERE id = ?',
       [userId],

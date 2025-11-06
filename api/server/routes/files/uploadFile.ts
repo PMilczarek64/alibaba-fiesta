@@ -50,7 +50,7 @@ uploadFile.post('/', fileStorage.single('file'), async (req, res) => {
 
 async function insertFileData({ filename, path, userId }: FileData) {
   try {
-    const db = await connectToDB();
+    const { db } = await connectToDB();
     const [result] = await db.execute(
       'INSERT INTO files (filename, path, user_id) VALUES (?, ?, ?)',
       [filename, path, userId],

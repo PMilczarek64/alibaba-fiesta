@@ -5,7 +5,7 @@ export interface UseUploadFileResult {
   file: File | null;
   uploadStatus: string | null;
   isUploading: boolean;
-  handleUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  handleUpload: (event: React.ChangeEvent<HTMLInputElement>, userId: number) => Promise<void>;
 }
 
 export const useUploadFile = (fetchFiles: () => Promise<void>): UseUploadFileResult => {
@@ -13,7 +13,7 @@ export const useUploadFile = (fetchFiles: () => Promise<void>): UseUploadFileRes
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>, userId: number) => {
     const uploadedFile = event.target.files?.[0];
     if (!uploadedFile) return;
 
@@ -26,7 +26,7 @@ export const useUploadFile = (fetchFiles: () => Promise<void>): UseUploadFileRes
         mode: 'UPLOAD',
         method: 'POST',
         file: uploadedFile,
-        additionalData: { userId: 123 }, // maybe user auth?
+        additionalData: { userId }, // maybe user auth?
       });
 
       if (result.success) {

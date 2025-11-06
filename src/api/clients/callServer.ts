@@ -5,6 +5,7 @@ const PATHS: Record<CallServerParams['mode'], string> = {
   LIST_FILES: '/files/list',
   DELETE_FILE: '/files/delete',
   ADD_USER: '/users/add',
+  LOGIN_USER: '/users/login',
   GET_USER: '/users/get',
   DELETE_USER: '/users/delete',
 } as const;
@@ -13,8 +14,9 @@ const REQUIRED_FIELDS: Record<CallServerParams['mode'], string[]> = {
   UPLOAD: ['file'],
   LIST_FILES: [],
   DELETE_FILE: ['fileName'],
-  ADD_USER: ['login', 'passwordHash'],
-  GET_USER: ['userId'],
+  ADD_USER: ['login', 'password'],
+  LOGIN_USER: ['login', 'password'],
+  GET_USER: ['login'],
   DELETE_USER: ['userId'],
 };
 
@@ -47,7 +49,9 @@ export async function callServer(
     body = formData;
   } else {
     headers['Content-Type'] = 'application/json';
-    body = JSON.stringify(params);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { method, mode, ...rest } = params;
+    body = JSON.stringify(rest);
   }
 
   try {
