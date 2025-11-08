@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { callServer } from '../../api/clients/callServer';
 
 export type useLoginResult = {
@@ -7,11 +7,42 @@ export type useLoginResult = {
   isLoggedIn: boolean;
 };
 
-export const useLogin = (setCurrentUserId: (userId: number) => void): useLoginResult => {
+export const useLogin = (setCurrentUserId: (userId: number) => void, fetchFiles: () => Promise<void>, setFiles: Dispatch<SetStateAction<string[]>>): useLoginResult => {
   const [loginStatus, setLoginStatus] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  useEffect(() => {
+    // debugger;
+    const checkSession = async () => {
+      try {
+        const res = await callServer({ mode: 'CHECK_USER_SESSION', method: 'GET' });
+        const userId = res.data?.userId;
+        if (userId !== undefined && userId !== null && res.success) {
+          setIsLoggedIn(true);
+          setCurrentUserId(res.data.userId);
+          fetchFiles();
+        } else {
+          setIsLoggedIn(false);
+          setCurrentUserId(0);
+          setFiles([]);
+        }
+      } catch (err) {
+        console.error('Session check failed', err);
+      }
+    };
+    checkSession();
+  }, [setCurrentUserId, fetchFiles, setFiles]);
+
   const handleLogin = async (username: string, password: string) => {
+    if (isLoggedIn) {
+      //LOGOUT
+      await callServer({ mode: 'LOGOUT_USER', method: 'GET' });
+      setIsLoggedIn(false);
+      setCurrentUserId(0);
+      setLoginStatus('✅ Logged out.');
+      setFiles([]);
+      return;
+    }
     if (!username || !password) return;
 
     setLoginStatus('Logging in...');
@@ -55,8 +86,9 @@ export const useLogin = (setCurrentUserId: (userId: number) => void): useLoginRe
         login: username,
         password,
       });
-      setLoginStatus(loginRes.success ? '✅ Logged in.' : '❌ Login failed.');
+      setLoginStatus(loginRes.success ? '✅ Logged in.' : '❌ Login failed.' + (loginRes.status === 401 ? ' Incorrect credentials.' : ''));
       setIsLoggedIn(loginRes.success);
+      fetchFiles();
       setCurrentUserId(loginRes.success ? loginRes.data.userId : 0);
     } catch (err) {
       console.error(err);

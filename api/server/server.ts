@@ -19,8 +19,10 @@ import deleteFile from './routes/files/deleteFile.js';
 import addUser from './routes/users/addUser.js';
 import getUser from './routes/users/getUser.js';
 import deleteUser from './routes/users/deleteUser.js';
-import session from 'express-session';
 import loginUser from './routes/users/loginUser.js';
+import { setupSession } from './session/setupSession.js';
+import logoutUser from './routes/users/logoutUser.js';
+import meUser from './routes/users/meUser.js';
 
 dotenv.config();
 
@@ -48,6 +50,7 @@ app.use(
     },
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
   }),
 );
 app.use(express.json());
@@ -92,27 +95,36 @@ app.use(cookieParser());
 //   });
 // }
 
-// ROUTES
-app.use('/files/upload', uploadFile);
-app.use('/files/list', listFiles);
-app.use('/files/delete', deleteFile);
-app.use('/users/add', addUser);
-app.use('/users/get', getUser);
-app.use('/users/delete', deleteUser);
-app.use('/users/login', loginUser);
-app.get('/test', (req, res) => {
-  (req.session as any).counter = ((req.session as any).counter || 0) + 1;
-  res.json({ visits: (req.session as any).counter });
-});
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ message: 'Not Found' });
-});
-
 async function startServer() {
   console.log(`[ENV] NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
   console.log(`[ENV] PORT: ${PORT}`);
+
+  const { sessionStore } = await connectToDB();
+  if (sessionStore !== null) {
+    const session = setupSession(sessionStore);
+    app.use(session);
+  }
+
+  // ROUTES
+  app.use('/files/upload', uploadFile);
+  app.use('/files/list', listFiles);
+  app.use('/files/delete', deleteFile);
+  app.use('/users/add', addUser);
+  app.use('/users/get', getUser);
+  app.use('/users/delete', deleteUser);
+  app.use('/users/login', loginUser);
+  app.use('/users/logout', logoutUser);
+  app.use('/users/me', meUser);
+  app.get('/test', (req, res) => {
+    console.log(req.session);
+    const sess = req.session as any;
+    sess.counter = (sess.counter || 0) + 1;
+    res.json({ visits: sess.counter });
+  });
+  // 404 handler
+  app.use((req, res) => {
+    res.status(404).json({ message: 'Not Found' });
+  });
 
   if (
     process.env.NODE_ENV !== 'production' &&
@@ -137,23 +149,6 @@ async function startServer() {
           app,
         )
         .listen(PORT, async () => {
-          // setup sessios
-          const { sessionStore } = await connectToDB();
-          app.use(
-            session({
-              name: 'sessionId',
-              secret: process.env.SESSION_SECRET!,
-              store: sessionStore ?? undefined,
-              resave: false,
-              saveUninitialized: false,
-              cookie: {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
-                maxAge: 24 * 60 * 60 * 1000,
-              },
-            }),
-          );
           console.log(`🔐 Dev server running at https://localhost:${PORT}`);
         });
 

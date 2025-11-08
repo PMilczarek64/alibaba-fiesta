@@ -8,6 +8,8 @@ const PATHS: Record<CallServerParams['mode'], string> = {
   LOGIN_USER: '/users/login',
   GET_USER: '/users/get',
   DELETE_USER: '/users/delete',
+  LOGOUT_USER : '/users/logout',
+  CHECK_USER_SESSION: '/users/me',
 } as const;
 
 const REQUIRED_FIELDS: Record<CallServerParams['mode'], string[]> = {
@@ -18,6 +20,8 @@ const REQUIRED_FIELDS: Record<CallServerParams['mode'], string[]> = {
   LOGIN_USER: ['login', 'password'],
   GET_USER: ['login'],
   DELETE_USER: ['userId'],
+  LOGOUT_USER : [],
+  CHECK_USER_SESSION : [],
 };
 
 const expressServerUrl =
@@ -51,7 +55,9 @@ export async function callServer(
     headers['Content-Type'] = 'application/json';
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { method, mode, ...rest } = params;
-    body = JSON.stringify(rest);
+    if (Object.keys(rest).length > 0 && method !== 'GET') {
+      body = JSON.stringify(rest);
+    }
   }
 
   try {
@@ -59,6 +65,7 @@ export async function callServer(
       method,
       headers,
       body,
+      credentials: 'include',
     });
 
     const json = await response.json().catch(() => ({}));

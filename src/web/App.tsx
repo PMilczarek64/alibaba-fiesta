@@ -18,7 +18,7 @@ export const App = () => {
 
   const { handleDelete } = useDeleteFile(fetchFiles);
   const { file, uploadStatus, isUploading, handleUpload } = useUploadFile(fetchFiles);
-  const { handleLogin, isLoggedIn, loginStatus } = useLogin(setCurrentUserId);
+  const { handleLogin, isLoggedIn, loginStatus } = useLogin(setCurrentUserId, fetchFiles, setFiles);
 
   useEffect(() => {
     fetchFiles();

@@ -17,8 +17,8 @@ export const LoginPage = ({ handleLogin, isLoggedIn }: UploaderProps) => {
 
   return (
     <div>
-      <input ref={loginInputRef} type="input" name="login_input"/>
-      <input ref={passwordInputRef} type='password' name='password_input'/>
+      {!isLoggedIn && <><input ref={loginInputRef} type="input" name="login_input"/>
+        <input ref={passwordInputRef} type='password' name='password_input'/></>}
       <button onClick={onLogin}>{isLoggedIn ? 'Logout' : 'Login'}</button>
     </div>
   );};
