@@ -15,7 +15,7 @@ const PATHS: Record<CallServerParams['mode'], string> = {
 const REQUIRED_FIELDS: Record<CallServerParams['mode'], string[]> = {
   UPLOAD: ['file'],
   LIST_FILES: [],
-  DELETE_FILE: ['fileName'],
+  DELETE_FILE: ['filename'],
   ADD_USER: ['login', 'password'],
   LOGIN_USER: ['login', 'password'],
   GET_USER: ['login'],

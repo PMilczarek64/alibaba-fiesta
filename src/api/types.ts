@@ -25,8 +25,7 @@ export type ParamsUpload = {
 export type ParamsDelete = {
   mode: 'DELETE_FILE';
   method: 'POST';
-  fileName: string; // filename is required here
-  additionalData?: Record<string, string | number | boolean>;
+  filename: string;
 }
 
 // Type for 'LIST_FILES' mode, which requires no additional params
