@@ -1,4 +1,4 @@
-// src/components/TopBar.tsx
+// src/web/components/TopBar.tsx
 import React from "react";
 import { alpha } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
@@ -17,8 +17,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import Typography from "@mui/material/Typography";
 
-import logo from "../assets/turban2.png";
-import avatarImg from "../assets/user-avatar.png";
 
 type Props = {
   onUploadClick?: () => void;
@@ -29,6 +27,8 @@ type Props = {
   setCollapsed: (v: boolean) => void;
 };
 
+const logo = "/logo192.png";
+
 export default function TopBar({
   onUploadClick,
   onToggleTheme,
@@ -37,13 +37,13 @@ export default function TopBar({
   collapsed,
   setCollapsed,
 }: Props) {
-  // state hook - ok (inside component)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
   const open = Boolean(anchorEl);
 
-  // === COLOURS / GRADIENT (zdefiniowane wewnątrz komponentu) ===
-  // Używamy dokładnych HEX, bez polegania na theme.palette,
-  // by uniknąć „modyfikacji” kolorów przez MUI.
+  const SIDEBAR_EXPANDED = 240;
+  const SIDEBAR_COLLAPSED = 72;
+
   const accentFrom = "#ffac47";
   const accentTo = "#ff448c";
   const accentGradient = `linear-gradient(135deg, ${accentFrom} 0%, ${accentTo} 100%)`;
@@ -54,26 +54,39 @@ export default function TopBar({
       position="fixed"
       color="default"
       elevation={1}
-      sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}
+      sx={(theme) => ({
+        zIndex: theme.zIndex.drawer + 1,
+        ml: collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED,
+        width: `calc(100% - ${collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED
+          }px)`,
+        transition: "margin-left 180ms ease, width 180ms ease",
+      })}
     >
       <Toolbar>
-        {/* Toggle button for collapse */}
+
+        {/* Toggle sidebar */}
         <IconButton
-          edge="start"
           color="inherit"
-          aria-label={collapsed ? "expand sidebar" : "collapse sidebar"}
           onClick={() => setCollapsed(!collapsed)}
           sx={{ mr: 1 }}
         >
           {collapsed ? <MenuIcon /> : <ChevronLeftIcon />}
         </IconButton>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <img src={logo} alt="Logo Alibaba-fiesta" style={{ width: 28, height: 28 }} />
-          <Typography variant="h6" component="div" sx={{ lineHeight: 1 }}>
+        {/* Logo + Title */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            height: "100%",          // klucz
+          }}
+        >
+          <Typography variant="h6" sx={{ lineHeight: 1 }}>
             alibaba-fiesta
           </Typography>
         </Box>
+
 
         <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
           <Button
@@ -83,7 +96,7 @@ export default function TopBar({
             onClick={onUploadClick}
             sx={{
               background: accentGradient,
-              color: accentGradient,
+              color: "#fff",
               boxShadow: "none",
               "&:hover": {
                 background: hoverGradient,
@@ -95,14 +108,21 @@ export default function TopBar({
           </Button>
 
           <Tooltip title="Toggle theme">
-            <IconButton onClick={onToggleTheme} size="small" aria-label="toggle theme" sx={{color: accentTo, width: 40, height: 40}}>
+            <IconButton
+              onClick={onToggleTheme}
+              size="small"
+              sx={{ color: accentTo }}
+            >
               {isDark ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
           </Tooltip>
 
           <Tooltip title="Account">
-            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size="small">
-              <Avatar src={avatarImg} alt="User avatar" sx={{ width: 40, height: 40 }} />
+            <IconButton
+              size="small"
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+            >
+              <Avatar sx={{ width: 40, height: 40 }} />
             </IconButton>
           </Tooltip>
 
@@ -121,6 +141,7 @@ export default function TopBar({
             >
               Profile
             </MenuItem>
+
             <MenuItem
               onClick={() => {
                 setAnchorEl(null);
@@ -129,14 +150,8 @@ export default function TopBar({
             >
               Settings
             </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setAnchorEl(null);
-                /* logout */
-              }}
-            >
-              Logout
-            </MenuItem>
+
+            <MenuItem onClick={() => setAnchorEl(null)}>Logout</MenuItem>
           </Menu>
         </Box>
       </Toolbar>

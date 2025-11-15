@@ -69,11 +69,11 @@ export default function DashboardLayout(props: {
   const NAV: any[] = [
     { kind: "page", segment: "/", title: "Dashboard", icon: <DashboardIcon /> },
     { kind: "header", title: "Files" },
-    { kind: "page", segment: "/files", title: "Files", icon: <FolderIcon />},
+    { kind: "page", segment: "/files", title: "Files", icon: <FolderIcon /> },
     { kind: "page", segment: "/upload", title: "Upload", icon: <BackupIcon /> },
     { kind: "divider" },
     { kind: "header", title: "Administration" },
-    { kind: "page", segment: "/settings", title: "Settings", icon: <SettingsIcon />},
+    { kind: "page", segment: "/settings", title: "Settings", icon: <SettingsIcon /> },
   ];
 
   return (
@@ -82,11 +82,12 @@ export default function DashboardLayout(props: {
         onUploadClick={() => navigate("/upload")}
         onToggleTheme={() => props.toggleColorMode?.()}
         isDark={false}
-        onNavigate={(to) => navigate(to)}
+        onNavigate={(to: string) => navigate(to)}
         collapsed={collapsed}
         setCollapsed={setCollapsed}
       />
 
+      {/* ASIDE: sidebar jako kolumna (branding + lista + footer) */}
       <Box
         component="aside"
         sx={{
@@ -98,14 +99,18 @@ export default function DashboardLayout(props: {
           borderRight: (t) => `1px solid ${t.palette.divider}`,
           bgcolor: "background.paper",
           position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          transition: "width 180ms ease",
         }}
       >
-        <Box sx={{ position: "sticky", top: 0, overflow: "auto" }}>
-          <SidebarNav navigation={NAV} onNavigate={(to) => navigate(to)} collapsed={collapsed} />
-        </Box>
+        <SidebarNav navigation={NAV} onNavigate={(to) => navigate(to)} collapsed={collapsed} />
       </Box>
 
+      {/* MAIN */}
       <Box component="main" sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* spacer odpowiadający AppBar: użyj Toolbar */}
         <Toolbar />
 
         <Container maxWidth={false} disableGutters sx={{ py: 4, px: { xs: 2, sm: 3, md: 4 } }}>

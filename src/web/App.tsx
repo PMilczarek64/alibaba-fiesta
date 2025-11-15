@@ -59,7 +59,7 @@ export default function App({ toggleColorMode }: { toggleColorMode?: () => void 
         } />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="upload" element={<UploadPage currentUserId={currentUserId} handleUpload={handleUpload} />} />
-        <Route path="files" element={<FilesPage files={files} handleDelete={handleDelete} />} />
+        <Route path="files" element={<FilesPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
