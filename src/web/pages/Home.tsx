@@ -1,36 +1,115 @@
-import { Container, Stack, Typography, Paper, Button, Chip } from '@mui/material';
+import { Box, Stack, Typography, Paper, Button, Chip } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import FolderIcon from '@mui/icons-material/Folder';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 
-export default function Home() {
+export interface HomeProps {
+  currentUserId: number;
+  files: string[];
+  file: File | null;
+  isUploading: boolean;
+  uploadStatus: string | null;
+  handleDelete: (e: React.MouseEvent<HTMLButtonElement>, fileName: string) => Promise<void> | void;
+}
+
+export default function Home({
+  currentUserId,
+  files,
+  file,
+  isUploading,
+  uploadStatus,
+  handleDelete,
+}: HomeProps) {
   return (
-    <Container maxWidth="lg" sx={{ pt: 3 }}>
+    <Box sx={{ pt: 3 }}>
       <Stack spacing={2}>
         <Typography variant="h4">Welcome to Files Manager</Typography>
+
         <Typography color="text.secondary">
           This dashboard is a starter layout for managing and uploading files. Use the sidebar to navigate.
         </Typography>
 
+        {/* --- Quick Actions --- */}
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <Paper elevation={2} sx={{ p: 2, flex: 1 }}>
             <Typography variant="h6">Quick actions</Typography>
+
             <Stack spacing={1} sx={{ mt: 1 }}>
-              <Button startIcon={<UploadFileIcon />} variant="contained">Upload file</Button>
-              <Button startIcon={<FolderIcon />} variant="outlined">Create folder</Button>
+              <Button
+                startIcon={<UploadFileIcon />}
+                variant="contained"
+                href="/upload"
+              >
+                Upload file
+              </Button>
+
+              <Button
+                startIcon={<FolderIcon />}
+                variant="outlined"
+                disabled
+              >
+                Create folder (Coming soon)
+              </Button>
             </Stack>
           </Paper>
 
+          {/* --- Recent / uploaded files --- */}
           <Paper elevation={2} sx={{ p: 2, flex: 2 }}>
-            <Typography variant="h6">Recent files</Typography>
+            <Typography variant="h6">Your files</Typography>
+
             <Stack spacing={1} sx={{ mt: 1 }}>
-              {['report.pdf','photo.jpg','notes.txt'].map(n => (
-                <Chip key={n} icon={<InsertDriveFileIcon />} label={n} clickable />
+              {files.length === 0 && (
+                <Typography color="text.secondary">
+                  No files yet. Upload something to get started.
+                </Typography>
+              )}
+
+              {files.map((n) => (
+                <Stack
+                  key={n}
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    px: 1.5,
+                    py: 1,
+                  }}
+                >
+                  <Chip
+                    icon={<InsertDriveFileIcon />}
+                    label={n}
+                    sx={{ flexGrow: 1 }}
+                  />
+
+                  <Button
+                    size="small"
+                    color="error"
+                    onClick={(e) => handleDelete(e, n)}
+                  >
+                    Delete
+                  </Button>
+                </Stack>
               ))}
             </Stack>
           </Paper>
         </Stack>
+
+        {/* --- Upload status info (optional) --- */}
+        {file && (
+          <Typography sx={{ mt: 2 }}>
+            Selected: <b>{file.name}</b>
+          </Typography>
+        )}
+
+        {isUploading && <Typography>Uploading...</Typography>}
+
+        {uploadStatus && (
+          <Typography color="success.main">{uploadStatus}</Typography>
+        )}
       </Stack>
-    </Container>
+    </Box>
   );
 }

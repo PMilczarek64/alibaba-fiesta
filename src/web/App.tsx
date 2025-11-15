@@ -1,69 +1,31 @@
 // src/App.tsx
-import React, { useEffect, ChangeEvent } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import TopBar from "./components/TopBar";
-import SidebarNav from "./components/SidebarNav";
+import LoginPage from "./pages/LoginPage"; // zakładam, że masz
+import DashboardLayout from "./layouts/DashboardLayout";
 
-import { Uploader } from "./components/Uploader";
+import Home from "./pages/Home";
+import DashboardPage from "./pages/DashboardPage";
+import UploadPage from "./pages/UploadPage";
+import FilesPage from "./pages/FilesPage";
+import SettingsPage from "./pages/SettingsPage";
+
+import { useAuth } from "./hooks/useAuth";
 import { useUploadFile } from "./hooks/useUploadFile";
 import { useDeleteFile } from "./hooks/useDeleteFile";
-import LoginPage from "./pages/LoginPage"; // Twój stary login component
-import { useAuth } from "./hooks/useAuth";
-
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Toolbar from "@mui/material/Toolbar";
-
-
-type FileHandler = (f: File) => void;
-type InputEventHandler = (event: ChangeEvent<HTMLInputElement>, userId: number) => Promise<void> | void;
-type MaybeUploadHandler = FileHandler | InputEventHandler;
 
 export default function App({ toggleColorMode }: { toggleColorMode?: () => void }) {
-  const {
-    currentUserId,
-    isLoggedIn,
-    loginStatus,
-    handleLogin,
-    files,
-    fetchFiles,
-  } = useAuth();
-
+  const { currentUserId, isLoggedIn, loginStatus, handleLogin, files, fetchFiles } = useAuth();
   const { handleDelete } = useDeleteFile(fetchFiles);
   const { file, uploadStatus, isUploading, handleUpload } = useUploadFile(fetchFiles);
 
-  // Sidebar collapsed state kept in App so TopBar can toggle it
   const [collapsed, setCollapsed] = React.useState(false);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchFiles();
-    }
-  }, [isLoggedIn, fetchFiles]);
 
   return (
     <Routes>
-      {/* Public login route - dostępne pod /login */}
-      <Route
-        path="/login"
-        element={
-          <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <LoginPage
-              handleLogin={handleLogin}
-              isLoggedIn={isLoggedIn}
-              // when clicked, this will call handleLogin('guest','guest')
-              onContinueAsGuest={() => {
-                handleLogin("guest", "guest");
-              }}
-            />
-          </Box>
-        }
-      />
+      <Route path="/login" element={<LoginPage handleLogin={handleLogin} isLoggedIn={isLoggedIn} />} />
 
-      {/* Dashboard routes - dostępne publicznie na razie (bez sprawdzania isLoggedIn) */}
       <Route
         path="/*"
         element={
@@ -75,231 +37,32 @@ export default function App({ toggleColorMode }: { toggleColorMode?: () => void 
             file={file}
             isUploading={isUploading}
             uploadStatus={uploadStatus}
-            loginStatus={loginStatus}
-            toggleColorMode={toggleColorMode}
             handleUpload={handleUpload}
             handleDelete={handleDelete}
+            loginStatus={loginStatus}
+            toggleColorMode={toggleColorMode}
             handleLogin={handleLogin}
           />
         }
-      />
-    </Routes>
-  );
-}
-
-/* ---------------------------
-   DashboardLayout - internal component
-   --------------------------- */
-// DashboardLayout — zamień swoją starą funkcję na ten kod
-function DashboardLayout(props: {
-  collapsed: boolean;
-  setCollapsed: (v: boolean) => void;
-  currentUserId: number;
-  files: string[];
-  file: File | null;
-  isUploading: boolean;
-  uploadStatus?: string | null;
-  handleUpload: MaybeUploadHandler;
-  handleDelete: (e: React.MouseEvent<HTMLButtonElement>, fileId: string) => Promise<void> | void;
-  loginStatus?: string;
-  toggleColorMode?: () => void;
-  handleLogin: (username: string, password: string) => void;
-}) {
-  const {
-    collapsed,
-    setCollapsed,
-    currentUserId,
-    files,
-    file,
-    isUploading,
-    uploadStatus,
-    handleUpload,
-    handleDelete,
-    loginStatus,
-    handleLogin,
-  } = props;
-
-  const navigate = useNavigate();
-
-  // adapter dla starego Uploader: (event, userId) => ...
-  const uploaderAdapter = async (event: ChangeEvent<HTMLInputElement>, userId: number) => {
-    const fileFromInput = event?.target?.files?.[0] ?? null;
-    if (!fileFromInput) return;
-
-    const fn = handleUpload as MaybeUploadHandler | undefined;
-    if (!fn) return;
-
-    if (typeof fn === "function") {
-      if ((fn as Function).length === 1) {
-        (fn as FileHandler)(fileFromInput);
-        return;
-      }
-
-      const maybePromise = (fn as InputEventHandler)(event, userId);
-      if (maybePromise && typeof (maybePromise as Promise<void>).then === "function") {
-        await maybePromise;
-      }
-    }
-  };
-
-  const NAV: any[] = [
-    { kind: "page", segment: "dashboard", title: "Dashboard", icon: undefined },
-    { kind: "header", title: "Files" },
-    { kind: "page", segment: "files", title: "Files", icon: undefined },
-    { kind: "page", segment: "upload", title: "Upload", icon: undefined },
-    { kind: "divider" },
-    { kind: "header", title: "Administration" },
-    { kind: "page", segment: "settings", title: "Settings", icon: undefined },
-  ];
-
-  // sidebar width values
-  const SIDEBAR_WIDTH = collapsed ? 72 : 240;
-
-  return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      {/* AppBar (TopBar) - position fixed in TopBar component */}
-      <TopBar
-        onUploadClick={() => navigate("/upload")}
-        onToggleTheme={() => props.toggleColorMode?.()}
-        isDark={false}
-        onNavigate={(to) => navigate(to)}
-        collapsed={collapsed}
-        setCollapsed={setCollapsed}
-      />
-
-      {/* Sidebar */}
-      <Box
-        component="aside"
-        sx={{
-          width: SIDEBAR_WIDTH,
-          flexShrink: 0,
-          boxSizing: "border-box",
-          // keep the sidebar under the AppBar visually:
-          
-          borderRight: (theme) => `1px solid ${theme.palette.divider}`,
-          bgcolor: "background.paper",
-        }}
       >
-        <Box sx={{ position: "sticky", top: (theme) => theme.mixins.toolbar.minHeight, overflow: "auto" }}>
-          <SidebarNav navigation={NAV} onNavigate={(to) => navigate(to)} collapsed={collapsed} />
-        </Box>
-      </Box>
-
-      {/* Main content */}
-      <Box component="main" sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Use Toolbar as spacer so content sits below AppBar exactly */}
-        <Box component="div">
-          <Toolbar /> {/* <-- ważne: wstawia wysokość AppBar jako spacer */}
-        </Box>
-
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Box>
-                  <Typography variant="h4" gutterBottom sx={{ mb: 2 }}>
-                    Welcome
-                  </Typography>
-
-                  {/* legacy uploader shown at top as before */}
-                  {currentUserId !== 0 && (
-                    <Box sx={{ mb: 3 }}>
-                      <Uploader handleUpload={uploaderAdapter} userId={currentUserId} />
-                    </Box>
-                  )}
-
-                  <Typography variant="body1" sx={{ mb: 2 }}>
-                    Status: {loginStatus}
-                  </Typography>
-
-                  {currentUserId !== 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      {file && <Typography>Selected: {file.name}</Typography>}
-                      {isUploading && <Typography>Uploading...</Typography>}
-                      {uploadStatus && <Typography>{uploadStatus}</Typography>}
-                    </Box>
-                  )}
-
-                  {files.length > 0 && (
-                    <Box sx={{ mt: 4 }}>
-                      <Typography variant="h6">File List</Typography>
-                      <Box component="ul" sx={{ pl: 2 }}>
-                        {files.map((f) => (
-                          <li key={f}>
-                            {f}{" "}
-                            <Button size="small" onClick={(e) => handleDelete(e as any, f)}>
-                              Delete
-                            </Button>
-                          </li>
-                        ))}
-                      </Box>
-                    </Box>
-                  )}
-                </Box>
-              }
-            />
-
-            <Route
-              path="/dashboard"
-              element={
-                <Box>
-                  <Typography variant="h4">Dashboard</Typography>
-                  <Typography>Here you can add dashboard widgets.</Typography>
-                </Box>
-              }
-            />
-
-            <Route
-              path="/upload"
-              element={
-                <Box>
-                  <Typography variant="h4" gutterBottom>
-                    Upload
-                  </Typography>
-                  {currentUserId !== 0 ? (
-                    <Uploader handleUpload={uploaderAdapter} userId={currentUserId} />
-                  ) : (
-                    <Typography>Please login to upload files.</Typography>
-                  )}
-                </Box>
-              }
-            />
-
-            <Route
-              path="/files"
-              element={
-                <Box>
-                  <Typography variant="h4">Files</Typography>
-                  {files.length === 0 ? (
-                    <Typography>No files yet</Typography>
-                  ) : (
-                    <Box component="ul" sx={{ pl: 2 }}>
-                      {files.map((f) => (
-                        <li key={f}>
-                          {f} <Button size="small" onClick={(e) => handleDelete(e as any, f)}>Delete</Button>
-                        </li>
-                      ))}
-                    </Box>
-                  )}
-                </Box>
-              }
-            />
-
-            <Route
-              path="/settings"
-              element={
-                <Box>
-                  <Typography variant="h4">Settings</Typography>
-                  <Typography>Settings page content here.</Typography>
-                </Box>
-              }
-            />
-
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Container>
-      </Box>
-    </Box>
+        {/* nested routes rendered into Outlet w DashboardLayout */}
+        <Route index element={
+          <Home
+            currentUserId={currentUserId}
+            files={files}
+            file={file}
+            isUploading={isUploading}
+            uploadStatus={uploadStatus}
+            handleDelete={handleDelete}
+            // jeśli Home potrzebuje uploaderAdapter, można go tu wygenerować i przekazać
+          />
+        } />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="upload" element={<UploadPage currentUserId={currentUserId} handleUpload={handleUpload} />} />
+        <Route path="files" element={<FilesPage files={files} handleDelete={handleDelete} />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
   );
 }
