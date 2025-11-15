@@ -63,7 +63,7 @@ export default defineConfig(({ mode }) => {
           cert: fs.readFileSync(path.join(CERTS_DIR, CERT_FILE)),
         },
         host: 'localhost',
-        port: 5173,
+        port: 5176,
         strictPort: true,
       }
       : undefined,

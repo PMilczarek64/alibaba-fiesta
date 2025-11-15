@@ -1,97 +1,21 @@
-// src/App.tsx
-import React, { useEffect, ChangeEvent } from "react";
+// src/layouts/DashboardLayout.tsx
+import React, { ChangeEvent } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-
-import TopBar from "./components/TopBar";
-import SidebarNav from "./components/SidebarNav";
-
-import { Uploader } from "./components/Uploader";
-import { useUploadFile } from "./hooks/useUploadFile";
-import { useDeleteFile } from "./hooks/useDeleteFile";
-import LoginPage from "./pages/LoginPage"; // Twój stary login component
-import { useAuth } from "./hooks/useAuth";
-
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Toolbar from "@mui/material/Toolbar";
 
+import TopBar from "../components/TopBar";
+import SidebarNav from "../components/SidebarNav";
+import { Uploader } from "../components/Uploader";
 
 type FileHandler = (f: File) => void;
 type InputEventHandler = (event: ChangeEvent<HTMLInputElement>, userId: number) => Promise<void> | void;
 type MaybeUploadHandler = FileHandler | InputEventHandler;
 
-export default function App({ toggleColorMode }: { toggleColorMode?: () => void }) {
-  const {
-    currentUserId,
-    isLoggedIn,
-    loginStatus,
-    handleLogin,
-    files,
-    fetchFiles,
-  } = useAuth();
-
-  const { handleDelete } = useDeleteFile(fetchFiles);
-  const { file, uploadStatus, isUploading, handleUpload } = useUploadFile(fetchFiles);
-
-  // Sidebar collapsed state kept in App so TopBar can toggle it
-  const [collapsed, setCollapsed] = React.useState(false);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchFiles();
-    }
-  }, [isLoggedIn, fetchFiles]);
-
-  return (
-    <Routes>
-      {/* Public login route - dostępne pod /login */}
-      <Route
-        path="/login"
-        element={
-          <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <LoginPage
-              handleLogin={handleLogin}
-              isLoggedIn={isLoggedIn}
-              // when clicked, this will call handleLogin('guest','guest')
-              onContinueAsGuest={() => {
-                handleLogin("guest", "guest");
-              }}
-            />
-          </Box>
-        }
-      />
-
-      {/* Dashboard routes - dostępne publicznie na razie (bez sprawdzania isLoggedIn) */}
-      <Route
-        path="/*"
-        element={
-          <DashboardLayout
-            collapsed={collapsed}
-            setCollapsed={setCollapsed}
-            currentUserId={currentUserId}
-            files={files}
-            file={file}
-            isUploading={isUploading}
-            uploadStatus={uploadStatus}
-            loginStatus={loginStatus}
-            toggleColorMode={toggleColorMode}
-            handleUpload={handleUpload}
-            handleDelete={handleDelete}
-            handleLogin={handleLogin}
-          />
-        }
-      />
-    </Routes>
-  );
-}
-
-/* ---------------------------
-   DashboardLayout - internal component
-   --------------------------- */
-// DashboardLayout — zamień swoją starą funkcję na ten kod
-function DashboardLayout(props: {
+export default function DashboardLayout(props: {
   collapsed: boolean;
   setCollapsed: (v: boolean) => void;
   currentUserId: number;
@@ -116,25 +40,22 @@ function DashboardLayout(props: {
     handleUpload,
     handleDelete,
     loginStatus,
-    handleLogin,
   } = props;
 
   const navigate = useNavigate();
+  const SIDEBAR_WIDTH = collapsed ? 72 : 240;
 
-  // adapter dla starego Uploader: (event, userId) => ...
+  // adapter: Uploader expects (event, userId)
   const uploaderAdapter = async (event: ChangeEvent<HTMLInputElement>, userId: number) => {
     const fileFromInput = event?.target?.files?.[0] ?? null;
     if (!fileFromInput) return;
-
     const fn = handleUpload as MaybeUploadHandler | undefined;
     if (!fn) return;
-
     if (typeof fn === "function") {
       if ((fn as Function).length === 1) {
         (fn as FileHandler)(fileFromInput);
         return;
       }
-
       const maybePromise = (fn as InputEventHandler)(event, userId);
       if (maybePromise && typeof (maybePromise as Promise<void>).then === "function") {
         await maybePromise;
@@ -143,21 +64,17 @@ function DashboardLayout(props: {
   };
 
   const NAV: any[] = [
-    { kind: "page", segment: "dashboard", title: "Dashboard", icon: undefined },
+    { kind: "page", segment: "/", title: "Dashboard", icon: undefined },
     { kind: "header", title: "Files" },
-    { kind: "page", segment: "files", title: "Files", icon: undefined },
-    { kind: "page", segment: "upload", title: "Upload", icon: undefined },
+    { kind: "page", segment: "/files", title: "Files", icon: undefined },
+    { kind: "page", segment: "/upload", title: "Upload", icon: undefined },
     { kind: "divider" },
     { kind: "header", title: "Administration" },
-    { kind: "page", segment: "settings", title: "Settings", icon: undefined },
+    { kind: "page", segment: "/settings", title: "Settings", icon: undefined },
   ];
-
-  // sidebar width values
-  const SIDEBAR_WIDTH = collapsed ? 72 : 240;
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      {/* AppBar (TopBar) - position fixed in TopBar component */}
       <TopBar
         onUploadClick={() => navigate("/upload")}
         onToggleTheme={() => props.toggleColorMode?.()}
@@ -167,51 +84,49 @@ function DashboardLayout(props: {
         setCollapsed={setCollapsed}
       />
 
-      {/* Sidebar */}
+      {/* ASIDE - sidebar jest siblings z main (nie wewnątrz Container) */}
       <Box
         component="aside"
         sx={{
           width: SIDEBAR_WIDTH,
           flexShrink: 0,
           boxSizing: "border-box",
-          // keep the sidebar under the AppBar visually:
-          
-          borderRight: (theme) => `1px solid ${theme.palette.divider}`,
+          p: 0,
+          m: 0,
+          borderRight: (t) => `1px solid ${t.palette.divider}`,
           bgcolor: "background.paper",
+          position: "relative",
         }}
       >
-        <Box sx={{ position: "sticky", top: (theme) => theme.mixins.toolbar.minHeight, overflow: "auto" }}>
+        <Box sx={{ position: "sticky", top: 0, overflow: "auto" }}>
           <SidebarNav navigation={NAV} onNavigate={(to) => navigate(to)} collapsed={collapsed} />
         </Box>
       </Box>
 
-      {/* Main content */}
+      {/* MAIN */}
       <Box component="main" sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Use Toolbar as spacer so content sits below AppBar exactly */}
-        <Box component="div">
-          <Toolbar /> {/* <-- ważne: wstawia wysokość AppBar jako spacer */}
-        </Box>
+        {/* spacer odpowiadający AppBar: użyj Toolbar */}
+        <Toolbar />
 
+        {/* <-- TUTAJ JEDEN Container dla całej zawartości (ważne) */}
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Routes>
             <Route
               path="/"
               element={
+                /* Używaj Box/Paper w route'ach, a nie dodatkowych Containerów */
                 <Box>
-                  <Typography variant="h4" gutterBottom sx={{ mb: 2 }}>
+                  <Typography variant="h4" gutterBottom>
                     Welcome
                   </Typography>
 
-                  {/* legacy uploader shown at top as before */}
                   {currentUserId !== 0 && (
                     <Box sx={{ mb: 3 }}>
                       <Uploader handleUpload={uploaderAdapter} userId={currentUserId} />
                     </Box>
                   )}
 
-                  <Typography variant="body1" sx={{ mb: 2 }}>
-                    Status: {loginStatus}
-                  </Typography>
+                  <Typography variant="body1">Status: {loginStatus}</Typography>
 
                   {currentUserId !== 0 && (
                     <Box sx={{ mt: 2 }}>
