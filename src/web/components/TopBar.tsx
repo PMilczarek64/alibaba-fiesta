@@ -44,11 +44,6 @@ export default function TopBar({
   const SIDEBAR_EXPANDED = 240;
   const SIDEBAR_COLLAPSED = 72;
 
-  const accentFrom = "#ffac47";
-  const accentTo = "#ff448c";
-  const accentGradient = `linear-gradient(135deg, ${accentFrom} 0%, ${accentTo} 100%)`;
-  const hoverGradient = `linear-gradient(135deg, ${alpha(accentFrom, 0.12)}, ${alpha(accentTo, 0.08)})`;
-
   return (
     <AppBar
       position="fixed"
@@ -94,15 +89,6 @@ export default function TopBar({
             startIcon={<UploadFileIcon />}
             size="small"
             onClick={onUploadClick}
-            sx={{
-              background: accentGradient,
-              color: "#fff",
-              boxShadow: "none",
-              "&:hover": {
-                background: hoverGradient,
-                boxShadow: "none",
-              },
-            }}
           >
             Upload
           </Button>
@@ -111,7 +97,6 @@ export default function TopBar({
             <IconButton
               onClick={onToggleTheme}
               size="small"
-              sx={{ color: accentTo }}
             >
               {isDark ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
